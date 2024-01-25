@@ -1,14 +1,37 @@
-import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { RouterOutlet } from '@angular/router';
+import { Component, OnInit, ViewChildren, QueryList } from '@angular/core';
+import { Observable } from 'rxjs';
+import { AdvancedService } from './executions.service';
+import { CommonModule, DecimalPipe } from '@angular/common';
+
 
 @Component({
-  selector: 'app-root',
+  selector: 'app-component',
   standalone: true,
-  imports: [CommonModule, RouterOutlet],
   templateUrl: './app.component.html',
-  styleUrl: './app.component.scss'
+  styleUrls: ['./app.component.scss'],
+  imports: [CommonModule],
+  providers: [AdvancedService, DecimalPipe]
 })
-export class AppComponent {
-  title = 'problem';
+
+/**
+ * Datatable Component
+ */
+export class AppComponent implements OnInit {
+
+  tables$: Observable<any[]>;
+  total$: Observable<number>;
+  testbooks: any[] = [];
+
+  constructor(public service: AdvancedService) {
+    this.tables$ = service.jobs$;
+    this.total$ = service.total$;
+  }
+
+  ngOnInit(): void {
+
+    this.tables$.subscribe((data: any) => {
+      console.log(data.length);
+      this.testbooks = data;
+    });
+  }
 }
