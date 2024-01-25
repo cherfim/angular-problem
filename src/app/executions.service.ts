@@ -52,7 +52,7 @@ export class AdvancedService {
   constructor(private pipe: DecimalPipe,
     private http: HttpClient) {
 
-    this.fetchedJobs$ = this.http.get<any[]>(`https://api.publicapis.org/entries`).pipe(
+    this.fetchedJobs$ = this.http.get<any[]>(`https://my-json-server.typicode.com/typicode/demo/posts/1`).pipe(
       tap((res: any[])=>{
         this.fetchedJobs=res;
     }));
