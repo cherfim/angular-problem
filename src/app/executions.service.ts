@@ -2,7 +2,8 @@ import { Injectable, PipeTransform } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { BehaviorSubject, Observable, of, Subject } from 'rxjs';
 import { debounceTime, delay, map, switchMap, tap } from 'rxjs/operators';
-import { HttpClient } from '@angular/common/http';
+
+import { APIService } from './api.service';
 
 interface SearchResult {
   jobs: any[];
@@ -26,7 +27,7 @@ const compare = (v1: string | number, v2: string | number) => v1 < v2 ? -1 : v1 
  * @param term Search the value
  */
 function matches(job: any, term: string, pipe: PipeTransform) {
-  return true;
+  return job.testbook_name.toLowerCase().includes(term);
 }
 
 @Injectable({
@@ -50,9 +51,9 @@ export class AdvancedService {
   };
 
   constructor(private pipe: DecimalPipe,
-    private http: HttpClient) {
+    private apiService: APIService) {
 
-    this.fetchedJobs$ = this.http.get<any[]>(`https://my-json-server.typicode.com/typicode/demo/posts/1`).pipe(
+    this.fetchedJobs$ = this.apiService.fetchJobs().pipe(
       tap((res: any[])=>{
         this.fetchedJobs=res;
     }));
@@ -87,16 +88,60 @@ export class AdvancedService {
   /**
    * set the value
    */
-  set page(page: number) { this._set({ page }); }
-  set pageSize(pageSize: number) { this._set({ pageSize }); }
-  set startIndex(startIndex: number) { this._set({ startIndex }); }
-  set endIndex(endIndex: number) { this._set({ endIndex }); }
-  set totalRecords(totalRecords: number) { this._set({ totalRecords }); }
-  set searchTerm(searchTerm: string) { this._set({ searchTerm }); }
+  set page(page: number) {
+    if (this._state.page != page) {
+      this._set({ page }, false);
+    }
+    this._set({ page }, true, "page");
+  }
 
-  private _set(patch: Partial<State>) {
+  set pageSize(pageSize: number) {
+    if (this._state.pageSize != pageSize) {
+      this._set({ pageSize }, false);
+    } else {
+      this._set({ pageSize }, true, "pageSize");
+    }
+  }
+
+  set searchTerm(searchTerm: string) {
+    if (this._state.searchTerm != searchTerm) {
+      this._set({ searchTerm }, false);
+    } else {
+      this._set({ searchTerm }, true, "searchTerm");
+    }
+  }
+
+  set startIndex(startIndex: number) {
+    if (this._state.startIndex != startIndex) {
+      this._set({ startIndex }, false);
+    } else {
+      this._set({ startIndex }, true, "startIndex");
+    }
+  }
+
+  set endIndex(endIndex: number) {
+    if (this._state.endIndex != endIndex) {
+      this._set({ endIndex }, false);
+    } else {
+      this._set({ endIndex }, true, "endIndex");
+    }
+  }
+
+  set totalRecords(totalRecords: number) {
+    if (this._state.totalRecords != totalRecords) {
+      this._set({ totalRecords }, false);
+    } else {
+      this._set({ totalRecords }, true, "totalRecords");
+    }
+  }
+
+  private _set(patch: Partial<State>, triggerSearch = true, caller = "") {
+    console.log("caller: " + caller);
     Object.assign(this._state, patch);
-    this._search$.next();
+
+    if (triggerSearch) {
+      this._search$.next();
+    }
   }
 
   /**
@@ -108,10 +153,12 @@ export class AdvancedService {
     return this.fetchedJobs$.pipe(
       map((res: any[]) => {
 
-      let jobs = Object.values(res);
+      let jobs = res;
 
       // 2. filter
-      jobs = jobs.filter(job => matches(job, searchTerm, this.pipe));
+      jobs = jobs.filter(job => {
+        return matches(job, searchTerm, this.pipe);
+      });
       const total = jobs.length;
 
       // 3. paginate

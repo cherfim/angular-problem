@@ -2,6 +2,9 @@ import { Component, OnInit, ViewChildren, QueryList } from '@angular/core';
 import { Observable } from 'rxjs';
 import { AdvancedService } from './executions.service';
 import { CommonModule, DecimalPipe } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { NgbModule } from '@ng-bootstrap/ng-bootstrap' ;
+
 
 
 @Component({
@@ -9,7 +12,7 @@ import { CommonModule, DecimalPipe } from '@angular/common';
   standalone: true,
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule, NgbModule],
   providers: [AdvancedService, DecimalPipe]
 })
 
